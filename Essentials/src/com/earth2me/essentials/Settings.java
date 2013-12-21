@@ -24,7 +24,7 @@ import org.bukkit.inventory.ItemStack;
 public class Settings implements net.ess3.api.ISettings
 {
 	private final transient EssentialsConf config;
-	private final static Logger logger = Logger.getLogger("Minecraft");
+	private final static Logger logger = Logger.getLogger("Essentials");
 	private final transient IEssentials ess;
 	private boolean metricsEnabled = true;
 
@@ -93,6 +93,19 @@ public class Settings implements net.ess3.api.ISettings
 	public int getChatRadius()
 	{
 		return chatRadius;
+	}
+
+	private boolean teleportSafety;
+
+	public boolean _isTeleportSafetyEnabled()
+	{
+		return config.getBoolean("teleport-safety", true);
+	}
+
+	@Override
+	public boolean isTeleportSafetyEnabled()
+	{
+		return teleportSafety;
 	}
 
 	@Override
@@ -416,6 +429,7 @@ public class Settings implements net.ess3.api.ISettings
 			mFormat = mFormat.replace("{DISPLAYNAME}", "%1$s");
 			mFormat = mFormat.replace("{MESSAGE}", "%2$s");
 			mFormat = mFormat.replace("{GROUP}", "{0}");
+			mFormat = mFormat.replace("{WORLD}", "{1}");
 			mFormat = mFormat.replace("{WORLDNAME}", "{1}");
 			mFormat = mFormat.replace("{SHORTWORLDNAME}", "{2}");
 			mFormat = mFormat.replace("{TEAMPREFIX}", "{3}");
@@ -486,6 +500,7 @@ public class Settings implements net.ess3.api.ISettings
 		config.load();
 		noGodWorlds = new HashSet<String>(config.getStringList("no-god-in-worlds"));
 		enabledSigns = _getEnabledSigns();
+		teleportSafety = _isTeleportSafetyEnabled();
 		teleportInvulnerabilityTime = _getTeleportInvulnerability();
 		teleportInvulnerability = _isTeleportInvulnerability();
 		disableItemPickupWhileAfk = _getDisableItemPickupWhileAfk();
@@ -519,6 +534,11 @@ public class Settings implements net.ess3.api.ISettings
 		economyLog = _isEcoLogEnabled();
 		economyLogUpdate = _isEcoLogUpdateEnabled();
 		economyDisabled = _isEcoDisabled();
+		allowSilentJoin = _isJoinQuitMessagesDisabled();
+		customJoinMessage = _getCustomJoinMessage();
+		isCustomJoinMessage = !customJoinMessage.equals("none");
+		customQuitMessage = _getCustomQuitMessage();
+		isCustomQuitMessage = !customQuitMessage.equals("none");
 	}
 	private List<Integer> itemSpawnBl = new ArrayList<Integer>();
 
@@ -1111,6 +1131,56 @@ public class Settings implements net.ess3.api.ISettings
 	public int getMaxNickLength()
 	{
 		return config.getInt("max-nick-length", 30);
+	}
+	private boolean allowSilentJoin;
+
+	public boolean _isJoinQuitMessagesDisabled()
+	{
+		return config.getBoolean("allow-silent-join-quit");
+	}
+
+	@Override
+	public boolean allowSilentJoinQuit()
+	{
+		return allowSilentJoin;
+	}
+	private String customJoinMessage;
+	private boolean isCustomJoinMessage;
+
+	public String _getCustomJoinMessage()
+	{
+		return FormatUtil.replaceFormat(config.getString("custom-join-message", "none"));
+	}
+
+	@Override
+	public String getCustomJoinMessage()
+	{
+		return customJoinMessage;
+	}
+
+	@Override
+	public boolean isCustomJoinMessage()
+	{
+		return isCustomJoinMessage;
+	}
+	private String customQuitMessage;
+	private boolean isCustomQuitMessage;
+
+	public String _getCustomQuitMessage()
+	{
+		return FormatUtil.replaceFormat(config.getString("custom-quit-message", "none"));
+	}
+
+	@Override
+	public String getCustomQuitMessage()
+	{
+		return customQuitMessage;
+	}
+
+	@Override
+	public boolean isCustomQuitMessage()
+	{
+		return isCustomQuitMessage;
 	}
 
 	// #easteregg

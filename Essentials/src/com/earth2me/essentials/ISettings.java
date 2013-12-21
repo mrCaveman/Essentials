@@ -80,6 +80,8 @@ public interface ISettings extends IConf
 
 	BigDecimal getStartingBalance();
 
+	boolean isTeleportSafetyEnabled();
+
 	double getTeleportCooldown();
 
 	double getTeleportDelay();
@@ -195,6 +197,16 @@ public interface ISettings extends IConf
 	Map<String, Object> getListGroupConfig();
 
 	int getMaxNickLength();
-	
+
 	int getMaxUserCacheCount();
+
+	boolean allowSilentJoinQuit();
+
+	boolean isCustomJoinMessage();
+
+	String getCustomJoinMessage();
+
+	boolean isCustomQuitMessage();
+
+	String getCustomQuitMessage();
 }

@@ -61,7 +61,7 @@ commands:
     aliases: [eburn]
   clearinventory:
     description: Clear all items in your inventory.
-    usage: /<command> [player|*] [item[:<data>]|*|**]
+    usage: /<command> [player|*] [item[:<data>]|*|**] [amount]
     aliases: [ci,eci,clean,eclean,clear,eclear,clearinvent,eclearinvent,eclearinventory]
   compass:
     description: Describes your current bearing.
@@ -206,10 +206,6 @@ commands:
     description: Kills specified player.
     usage: /<command> <player>
     aliases: [ekill]
-  killall:
-    description: Kill all mobs in a world.
-    usage: /<command> [mobType] [radius] [world]
-    aliases: [butcher,ebutcher,ekillall,mobkill,emobkill]
   kit:
     description: Obtains the specified kit or views all available kits.
     usage: /<command> [kit] [player]
@@ -304,8 +300,8 @@ commands:
     aliases: [formula,eformula,method,emethod,erecipe,recipes,erecipes]
   remove:
     description: Removes entities in your world.
-    usage: /<command> <drops|arrows|boats|minecarts|xp|paintings|itemframes|endercrystals> [radius] [world]
-    aliases: [eremove]
+    usage: /<command> <all|tamed|drops|arrows|boats|minecarts|xp|paintings|itemframes|endercrystals|monsters|animals|ambient|mobs|[mobType]> [radius] [world]
+    aliases: [eremove,butcher,ebutcher,killall,ekillall,mobkill,emobkill]
   repair:
     description: Repairs the durability of one or all items.
     usage: /<command> [hand|all]

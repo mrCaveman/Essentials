@@ -35,7 +35,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class EssentialsPlayerListener implements Listener
 {
-	private static final Logger LOGGER = Logger.getLogger("Minecraft");
+	private static final Logger LOGGER = Logger.getLogger("Essentials");
 	private final transient IEssentials ess;
 
 	public EssentialsPlayerListener(final IEssentials parent)
@@ -147,10 +147,25 @@ public class EssentialsPlayerListener implements Listener
 		}
 	}
 
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerQuit(final PlayerQuitEvent event)
 	{
 		final User user = ess.getUser(event.getPlayer());
+
+		if (ess.getSettings().allowSilentJoinQuit() && user.isAuthorized("essentials.silentquit"))
+		{
+			event.setQuitMessage(null);
+		}
+		else if (ess.getSettings().isCustomQuitMessage() && event.getQuitMessage() != null)
+		{
+			final Player player = event.getPlayer();
+			event.setQuitMessage(
+					ess.getSettings().getCustomQuitMessage()
+							.replace("{PLAYER}", player.getDisplayName())
+							.replace("{USERNAME}", player.getName())
+			);
+		}
+
 		if (ess.getSettings().removeGodOnDisconnect() && user.isGodModeEnabled())
 		{
 			user.setGodModeEnabled(false);
@@ -168,20 +183,25 @@ public class EssentialsPlayerListener implements Listener
 		user.dispose();
 	}
 
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(final PlayerJoinEvent event)
 	{
+		final String joinMessage = event.getJoinMessage();
 		ess.runTaskAsynchronously(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				delayedJoin(event.getPlayer());
+				delayedJoin(event.getPlayer(), joinMessage);
 			}
 		});
+		if(ess.getSettings().allowSilentJoinQuit() || ess.getSettings().isCustomJoinMessage())
+		{
+			event.setJoinMessage(null);
+		}
 	}
 
-	public void delayedJoin(final Player player)
+	public void delayedJoin(final Player player, final String message)
 	{
 		if (!player.isOnline())
 		{
@@ -190,6 +210,7 @@ public class EssentialsPlayerListener implements Listener
 
 		ess.getBackup().onPlayerJoin();
 		final User user = ess.getUser(player);
+
 
 		if (user.isNPC())
 		{
@@ -229,6 +250,23 @@ public class EssentialsPlayerListener implements Listener
 				if (user.isAuthorized("essentials.sleepingignored"))
 				{
 					user.setSleepingIgnored(true);
+				}
+
+				if ((ess.getSettings().allowSilentJoinQuit() && user.isAuthorized("essentials.silentjoin")) || message == null)
+				{
+					// Do nothing - silently join
+				}
+				else if (ess.getSettings().isCustomJoinMessage())
+				{
+					ess.getServer().broadcastMessage(
+							ess.getSettings().getCustomJoinMessage()
+								.replace("{PLAYER}", player.getDisplayName())
+								.replace("{USERNAME}", player.getName())
+					);
+				}
+				else if(ess.getSettings().allowSilentJoinQuit())
+				{
+					ess.getServer().broadcastMessage(message);
 				}
 
 				if (!ess.getSettings().isCommandDisabled("motd") && user.isAuthorized("essentials.motd"))

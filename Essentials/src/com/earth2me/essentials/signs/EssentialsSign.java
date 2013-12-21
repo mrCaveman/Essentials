@@ -51,11 +51,11 @@ public class EssentialsSign
 		}
 		catch (ChargeException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 		}
 		catch (SignException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 		}
 		// Return true, so the player sees the wrong sign.
 		return true;
@@ -97,12 +97,12 @@ public class EssentialsSign
 		}
 		catch (ChargeException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 			return false;
 		}
-		catch (SignException ex)
+		catch (Exception ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 			return false;
 		}
 	}
@@ -119,7 +119,7 @@ public class EssentialsSign
 		}
 		catch (SignException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 			return false;
 		}
 	}
@@ -148,11 +148,11 @@ public class EssentialsSign
 		}
 		catch (ChargeException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 		}
 		catch (SignException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 		}
 		return false;
 	}
@@ -166,11 +166,11 @@ public class EssentialsSign
 		}
 		catch (ChargeException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 		}
 		catch (SignException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 		}
 		return false;
 	}
@@ -184,7 +184,7 @@ public class EssentialsSign
 		}
 		catch (SignException ex)
 		{
-			ess.showError(user.getSource(), ex, signName);
+			showError(ess, user.getSource(), ex, signName);
 		}
 		return false;
 	}
@@ -280,9 +280,14 @@ public class EssentialsSign
 		return false;
 	}
 
+	private String getSignText(final ISign sign, final int lineNumber)
+	{
+		return sign.getLine(lineNumber).trim();
+	}
+
 	protected final void validateTrade(final ISign sign, final int index, final IEssentials ess) throws SignException
 	{
-		final String line = sign.getLine(index).trim();
+		final String line = getSignText(sign, index);
 		if (line.isEmpty())
 		{
 			return;
@@ -298,9 +303,10 @@ public class EssentialsSign
 	protected final void validateTrade(final ISign sign, final int amountIndex, final int itemIndex,
 									   final User player, final IEssentials ess) throws SignException
 	{
-		if (sign.getLine(itemIndex).equalsIgnoreCase("exp") || sign.getLine(itemIndex).equalsIgnoreCase("xp"))
+		final String itemType = getSignText(sign, itemIndex);
+		if (itemType.equalsIgnoreCase("exp") || itemType.equalsIgnoreCase("xp"))
 		{
-			int amount = getIntegerPositive(sign.getLine(amountIndex));
+			int amount = getIntegerPositive(getSignText(sign, amountIndex));
 			sign.setLine(amountIndex, Integer.toString(amount));
 			sign.setLine(itemIndex, "exp");
 			return;
@@ -308,19 +314,20 @@ public class EssentialsSign
 		final Trade trade = getTrade(sign, amountIndex, itemIndex, player, ess);
 		final ItemStack item = trade.getItemStack();
 		sign.setLine(amountIndex, Integer.toString(item.getAmount()));
-		sign.setLine(itemIndex, sign.getLine(itemIndex).trim());
+		sign.setLine(itemIndex, itemType);
 	}
 
 	protected final Trade getTrade(final ISign sign, final int amountIndex, final int itemIndex,
 								   final User player, final IEssentials ess) throws SignException
 	{
-		if (sign.getLine(itemIndex).equalsIgnoreCase("exp") || sign.getLine(itemIndex).equalsIgnoreCase("xp"))
+		final String itemType = getSignText(sign, itemIndex);
+		if (itemType.equalsIgnoreCase("exp") || itemType.equalsIgnoreCase("xp"))
 		{
-			final int amount = getIntegerPositive(sign.getLine(amountIndex));
+			final int amount = getIntegerPositive(getSignText(sign, amountIndex));
 			return new Trade(amount, ess);
 		}
-		final ItemStack item = getItemStack(sign.getLine(itemIndex), 1, ess);
-		final int amount = Math.min(getIntegerPositive(sign.getLine(amountIndex)), item.getType().getMaxStackSize() * player.getInventory().getSize());
+		final ItemStack item = getItemStack(itemType, 1, ess);
+		final int amount = Math.min(getIntegerPositive(getSignText(sign, amountIndex)), item.getType().getMaxStackSize() * player.getInventory().getSize());
 		if (item.getType() == Material.AIR || amount < 1)
 		{
 			throw new SignException(_("moreThanZero"));
@@ -331,7 +338,7 @@ public class EssentialsSign
 
 	protected final void validateInteger(final ISign sign, final int index) throws SignException
 	{
-		final String line = sign.getLine(index).trim();
+		final String line = getSignText(sign, index);
 		if (line.isEmpty())
 		{
 			throw new SignException("Empty line " + index);
@@ -378,6 +385,26 @@ public class EssentialsSign
 		}
 	}
 
+	protected final ItemStack getItemMeta(final ItemStack item, final String meta, final IEssentials ess) throws SignException
+	{
+		ItemStack stack = item;
+		try
+		{
+			if (!meta.isEmpty())
+			{
+				MetaItemStack metaStack = new MetaItemStack(stack);
+				final boolean allowUnsafe = ess.getSettings().allowUnsafeEnchantments();
+				metaStack.addStringMeta(null, allowUnsafe, meta, ess);
+				stack = metaStack.getItemStack();
+			}
+		}
+		catch (Exception ex)
+		{
+			throw new SignException(ex.getMessage(), ex);
+		}
+		return stack;
+	}
+
 	protected final BigDecimal getMoney(final String line) throws SignException
 	{
 		final boolean isMoney = line.matches("^[^0-9-\\.][\\.0-9]+$");
@@ -417,7 +444,7 @@ public class EssentialsSign
 
 	protected final Trade getTrade(final ISign sign, final int index, final int decrement, final IEssentials ess) throws SignException
 	{
-		final String line = sign.getLine(index).trim();
+		final String line = getSignText(sign, index);
 		if (line.isEmpty())
 		{
 			return new Trade(signName.toLowerCase(Locale.ENGLISH) + "sign", ess);
@@ -458,6 +485,11 @@ public class EssentialsSign
 		}
 	}
 
+	private void showError(final IEssentials ess, final CommandSource sender, final Throwable exception, final String signName)
+	{
+		ess.showError(sender, exception, "\\ sign: " + signName);
+	}
+
 
 	static class EventSign implements ISign
 	{
@@ -475,7 +507,14 @@ public class EssentialsSign
 		@Override
 		public final String getLine(final int index)
 		{
-			return event.getLine(index);
+			StringBuilder builder = new StringBuilder();
+			for (char c : event.getLine(index).toCharArray()) {
+				if (c < 0xF700 || c > 0xF747) {
+					builder.append(c);
+				}
+			}
+			return builder.toString();
+			//return event.getLine(index); // Above code can be removed and replaced with this line when https://github.com/Bukkit/Bukkit/pull/982 is merged.
 		}
 
 		@Override
@@ -514,7 +553,7 @@ public class EssentialsSign
 		@Override
 		public final String getLine(final int index)
 		{
-			return sign.getLine(index);
+			return sign.getLine(index).replaceAll("\uF700", "").replaceAll("\uF701", ""); // Mac OSX sends weird chars, ie up and down arrow symbols
 		}
 
 		@Override
