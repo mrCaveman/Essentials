@@ -7,6 +7,7 @@ import java.util.List;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
+import static com.earth2me.essentials.I18n._;
 
 public abstract class EssentialsLoopCommand extends EssentialsCommand
 {
@@ -16,7 +17,7 @@ public abstract class EssentialsLoopCommand extends EssentialsCommand
 	}
 
 	protected void loopOfflinePlayers(final Server server, final CommandSource sender, final boolean multipleStringMatches, final String searchTerm, final String[] commandArgs)
-			throws PlayerNotFoundException, NotEnoughArgumentsException, PlayerExemptException, ChargeException
+			throws PlayerNotFoundException, NotEnoughArgumentsException, PlayerExemptException, ChargeException, Exception
 	{
 		if (searchTerm.isEmpty())
 		{
@@ -25,23 +26,37 @@ public abstract class EssentialsLoopCommand extends EssentialsCommand
 
 		if (searchTerm.contentEquals("**"))
 		{
-			for (String sUser : ess.getUserMap().getAllUniqueUsers())
+			if(!sender.isPlayer() || ess.getUser(sender.getPlayer()).isAuthorized("essentials." + getName() + ".wildcard"))
 			{
-				final User matchedUser = ess.getUser(sUser);
-				updatePlayer(server, sender, matchedUser, commandArgs);
+				for (String sUser : ess.getUserMap().getAllUniqueUsers())
+				{
+					final User matchedUser = ess.getUser(sUser);
+					updatePlayer(server, sender, matchedUser, commandArgs);
+				}
+			}
+			else
+			{
+				throw new Exception(_("noAccessCommand"));
 			}
 		}
 		else if (searchTerm.contentEquals("*"))
 		{
-			boolean skipHidden = sender.isPlayer() && !ess.getUser(sender.getPlayer()).isAuthorized("essentials.vanish.interact");
-			for (Player onlinePlayer : server.getOnlinePlayers())
+			if (!sender.isPlayer() || ess.getUser(sender.getPlayer()).isAuthorized("essentials." + getName() + ".wildcard"))
 			{
-				final User onlineUser = ess.getUser(onlinePlayer);
-				if (skipHidden && onlineUser.isHidden())
+				boolean skipHidden = sender.isPlayer() && !ess.getUser(sender.getPlayer()).isAuthorized("essentials.vanish.interact");
+				for (Player onlinePlayer : server.getOnlinePlayers())
 				{
-					continue;
+					final User onlineUser = ess.getUser(onlinePlayer);
+					if (skipHidden && onlineUser.isHidden())
+					{
+						continue;
+					}
+					updatePlayer(server, sender, onlineUser, commandArgs);
 				}
-				updatePlayer(server, sender, onlineUser, commandArgs);
+			}
+			else
+			{
+				throw new Exception(_("noAccessCommand"));
 			}
 		}
 		else if (multipleStringMatches)
@@ -70,7 +85,7 @@ public abstract class EssentialsLoopCommand extends EssentialsCommand
 	}
 
 	protected void loopOnlinePlayers(final Server server, final CommandSource sender, final boolean multipleStringMatches, final String searchTerm, final String[] commandArgs)
-			throws PlayerNotFoundException, NotEnoughArgumentsException, PlayerExemptException, ChargeException
+			throws PlayerNotFoundException, NotEnoughArgumentsException, PlayerExemptException, ChargeException, Exception
 	{
 		if (searchTerm.isEmpty())
 		{
@@ -81,14 +96,21 @@ public abstract class EssentialsLoopCommand extends EssentialsCommand
 
 		if (searchTerm.contentEquals("**") || searchTerm.contentEquals("*"))
 		{
-			for (Player onlinePlayer : server.getOnlinePlayers())
+			if(!sender.isPlayer() || ess.getUser(sender.getPlayer()).isAuthorized("essentials." + getName() + ".wildcard"))
 			{
-				final User onlineUser = ess.getUser(onlinePlayer);
-				if (skipHidden && onlineUser.isHidden())
+				for (Player onlinePlayer : server.getOnlinePlayers())
 				{
-					continue;
+					final User onlineUser = ess.getUser(onlinePlayer);
+					if (skipHidden && onlineUser.isHidden())
+					{
+						continue;
+					}
+					updatePlayer(server, sender, onlineUser, commandArgs);
 				}
-				updatePlayer(server, sender, onlineUser, commandArgs);
+			}
+			else
+			{
+				throw new Exception(_("noAccessCommand"));
 			}
 		}
 		else if (multipleStringMatches)
