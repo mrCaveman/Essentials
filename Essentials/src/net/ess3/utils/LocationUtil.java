@@ -51,13 +51,13 @@ public class LocationUtil
 		AIR_MATERIALS.add(Material.VINE.getId());
 		AIR_MATERIALS.add(Material.NETHER_WARTS.getId());
 		AIR_MATERIALS.add(Material.WATER_LILY.getId());
+		AIR_MATERIALS.add(Material.WATER.getId());
+		AIR_MATERIALS.add(Material.STATIONARY_WATER.getId());
 
 		for (Integer integer : AIR_MATERIALS)
 		{
 			AIR_MATERIALS_TARGET.add(integer.byteValue());
 		}
-		AIR_MATERIALS_TARGET.add((byte)Material.WATER.getId());
-		AIR_MATERIALS_TARGET.add((byte)Material.STATIONARY_WATER.getId());
 	}
 
 	public static Location getTarget(final LivingEntity entity) throws Exception
