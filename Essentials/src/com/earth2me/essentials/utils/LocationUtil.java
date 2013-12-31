@@ -61,6 +61,8 @@ public class LocationUtil
 		HOLLOW_MATERIALS.add(Material.FENCE_GATE.getId());
 		HOLLOW_MATERIALS.add(Material.WATER_LILY.getId());
 		HOLLOW_MATERIALS.add(Material.NETHER_WARTS.getId());
+		HOLLOW_MATERIALS.add(Material.WATER.getId());
+		HOLLOW_MATERIALS.add(Material.STATIONARY_WATER.getId());
 
 		try // 1.6 update
 		{
@@ -75,8 +77,6 @@ public class LocationUtil
 		{
 			TRANSPARENT_MATERIALS.add(integer.byteValue());
 		}
-		TRANSPARENT_MATERIALS.add((byte)Material.WATER.getId());
-		TRANSPARENT_MATERIALS.add((byte)Material.STATIONARY_WATER.getId());
 	}
 	public final static int RADIUS = 3;
 	public final static Vector3D[] VOLUME;
